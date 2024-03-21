@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class BookStoreServer {
-    private static final int PORT = 8080;
+    private static final int PORT = 1253;
     private static ServerSocket serverSocket;
     private static ExecutorService executorService;
 
