@@ -13,7 +13,7 @@ public class BookStoreClient {
             PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
             BufferedReader userInputReader = new BufferedReader(new InputStreamReader(System.in));
 
-            System.out.println("Welcome to BookStore Server.");
+            System.out.println("Connected to server.");
 
             while (!isAuthenticated) {
                 System.out.println("\nPlease choose Option:");
@@ -72,37 +72,37 @@ public class BookStoreClient {
                     case "1":
                         System.out.print("Enter book title, author, genre, price, and quantity (comma-separated): ");
                         String[] bookInfo = userInputReader.readLine().split(",");
-                        writer.println("addbook," + String.join(",", bookInfo));
+                        writer.println("add_book," + String.join(",", bookInfo));
                         System.out.println(reader.readLine());
                         break;
                     case "2":
                         System.out.print("Enter book id to delete: ");
                         String bookId = userInputReader.readLine();
-                        writer.println("deletebook," + bookId);
+                        writer.println("delete_book," + bookId);
                         System.out.println(reader.readLine());
                         break;
                     case "3":
                         System.out.print("Enter book id: ");
                         String bookId2 = userInputReader.readLine();
-                        writer.println("getbookid," +  bookId2);
+                        writer.println("get_book_by_id," +  bookId2);
                         System.out.println(reader.readLine());
                         break;
                     case "4":
                         System.out.print("Enter book title: ");
                         String bookTitle = userInputReader.readLine();
-                        writer.println("getbooktitle," +  bookTitle);
+                        writer.println("get_book_by_title," +  bookTitle);
                         System.out.println(reader.readLine());
                         break;
                     case "5":
                         System.out.print("Enter book Author: ");
                         String bookAuthor = userInputReader.readLine();
-                        writer.println("getbookauthor," + bookAuthor);
+                        writer.println("get_book_by_author," + bookAuthor);
                         System.out.println(reader.readLine());
                         break;
                     case "6":
                         System.out.print("Enter book Genre: ");
                         String bookGenre = userInputReader.readLine();
-                        writer.println("getbookgenre," + bookGenre);
+                        writer.println("get_book_by_genre," + bookGenre);
                         System.out.println(reader.readLine());
                         break;
 
