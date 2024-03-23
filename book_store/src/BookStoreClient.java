@@ -1,131 +1,123 @@
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.Socket;
-import java.util.Scanner;
 
 public class BookStoreClient {
-    private Scanner scanner;
-
-    public void start() {
-        System.out.println("Welcome to the Online Bookstore!");
-        boolean isLoggedIn = false;
-
-        while (!isLoggedIn) {
-            isLoggedIn = showLoginMenu();
-        }
-
-        showMainMenu();
-    }
-
-    private boolean showLoginMenu() {
-        System.out.println("Please select an option:");
-        System.out.println("1. Login");
-        System.out.println("2. Register");
-        System.out.println("3. Exit");
-
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
-
-        switch (choice) {
-            case 1:
-                // Implement login logic
-                break;
-            case 2:
-                // Implement registration logic
-                break;
-            case 3:
-                System.out.println("Exiting...");
-                System.exit(0);
-            default:
-                System.out.println("Invalid choice. Please try again.");
-                return false;
-        }
-
-        return true; // If logged in successfully
-    }
-
-    private void showMainMenu() {
-        boolean isRunning = true;
-
-        while (isRunning) {
-            System.out.println("Please select an option:");
-            System.out.println("1. Browse Books");
-            System.out.println("2. Search Books");
-            System.out.println("3. Add Book");
-            System.out.println("4. Remove Book");
-            System.out.println("5. Submit Request");
-            System.out.println("6. Check Requests");
-            System.out.println("7. Request History");
-            System.out.println("8. Logout");
-
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
-
-            switch (choice) {
-                case 1:
-                    // Implement browse books logic
-                    break;
-                case 2:
-                    // Implement search books logic
-                    break;
-                case 3:
-                    // Implement add book logic
-                    break;
-                case 4:
-                    // Implement remove book logic
-                    break;
-                case 5:
-                    // Implement submit request logic
-                    break;
-                case 6:
-                    // Implement check requests logic
-                    break;
-                case 7:
-                    // Implement request history logic
-                    break;
-                case 8:
-                    System.out.println("Logging out...");
-                    isRunning = false;
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
-        }
-    }
-    public static void runMultipleRequests(int numOfClients) {
-        String hostname = "localhost";
-        int port = 1253;
-
-        for (int i = 0; i < numOfClients; i++) {
-            try {
-                // create a socket
-                Socket socket = new Socket(hostname, port);
-
-
-                BufferedWriter writer = new BufferedWriter(
-                        new OutputStreamWriter(socket.getOutputStream()));
-
-                writer.newLine();
-                writer.flush();
-
-                // get the result from the server
-                BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(socket.getInputStream()));
-                System.out.println(reader.readLine());
-
-                reader.close();
-                writer.close();
-                socket.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
+    private static final String SERVER_IP = "127.0.0.1"; // Replace with the server's IP address
+    private static final int SERVER_PORT = 1235;
+    private static boolean isAuthenticated=false;
 
     public static void main(String[] args) {
-        runMultipleRequests(5);
+        try {
+            Socket socket = new Socket(SERVER_IP, SERVER_PORT);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+            BufferedReader userInputReader = new BufferedReader(new InputStreamReader(System.in));
+
+            System.out.println("Welcome to BookStore Server.");
+
+            while (!isAuthenticated) {
+                System.out.println("\nPlease choose Option:");
+                System.out.println("1. Login");
+                System.out.println("2. Register");
+                System.out.println("3. Exit");
+                System.out.print("Enter action number: ");
+                String action = userInputReader.readLine();
+
+                switch (action.trim().toLowerCase()) {
+                    case "1":
+                        System.out.print("Enter username: ");
+                        String username = userInputReader.readLine();
+                        System.out.print("Enter password: ");
+                        String password = userInputReader.readLine();
+                        writer.println("login," + username + "," + password);
+                        String loginResponse = reader.readLine();
+                        System.out.println(loginResponse);
+                        isAuthenticated = loginResponse.equals("Login successful.");
+                        break;
+                    case "2":
+                        System.out.print("Enter name: ");
+                        String name = userInputReader.readLine();
+                        System.out.print("Enter username: ");
+                        String newUsername = userInputReader.readLine();
+                        System.out.print("Enter password: ");
+                        String newPassword = userInputReader.readLine();
+                        writer.println("register," + name + "," + newUsername + "," + newPassword);
+                        String registerResponse = reader.readLine();
+                        System.out.println(registerResponse);
+                        break;
+                    case "3":
+                        writer.println("exit");
+                        socket.close();
+                        System.out.println("Disconnected from server.");
+                        return;
+                    default:
+                        System.out.println("Invalid action. Please try again.");
+                        break;
+                }
+            }
+
+            while (true) {
+                System.out.println("\nPlease choose Option:");
+                System.out.println("1. Add book");
+                System.out.println("2. Delete book");
+                System.out.println("3. browse book by Id");
+                System.out.println("4. browse book by Title");
+                System.out.println("5. browse book by Author");
+                System.out.println("6. browse book by Genre");
+                System.out.println("7. Exit");
+                System.out.print("Enter action number: ");
+                String action = userInputReader.readLine();
+
+                switch (action.trim().toLowerCase()) {
+                    case "1":
+                        System.out.print("Enter book title, author, genre, price, and quantity (comma-separated): ");
+                        String[] bookInfo = userInputReader.readLine().split(",");
+                        writer.println("addbook," + String.join(",", bookInfo));
+                        System.out.println(reader.readLine());
+                        break;
+                    case "2":
+                        System.out.print("Enter book id to delete: ");
+                        String bookId = userInputReader.readLine();
+                        writer.println("deletebook," + bookId);
+                        System.out.println(reader.readLine());
+                        break;
+                    case "3":
+                        System.out.print("Enter book id: ");
+                        String bookId2 = userInputReader.readLine();
+                        writer.println("getbookid," +  bookId2);
+                        System.out.println(reader.readLine());
+                        break;
+                    case "4":
+                        System.out.print("Enter book title: ");
+                        String bookTitle = userInputReader.readLine();
+                        writer.println("getbooktitle," +  bookTitle);
+                        System.out.println(reader.readLine());
+                        break;
+                    case "5":
+                        System.out.print("Enter book Author: ");
+                        String bookAuthor = userInputReader.readLine();
+                        writer.println("getbookauthor," + bookAuthor);
+                        System.out.println(reader.readLine());
+                        break;
+                    case "6":
+                        System.out.print("Enter book Genre: ");
+                        String bookGenre = userInputReader.readLine();
+                        writer.println("getbookgenre," + bookGenre);
+                        System.out.println(reader.readLine());
+                        break;
+
+                    case "7":
+                        writer.println("exit");
+                        socket.close();
+                        System.out.println("Disconnected from server.");
+                        return;
+                    default:
+                        System.out.println("Invalid action. Please try again.");
+                        break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
