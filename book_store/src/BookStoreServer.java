@@ -55,9 +55,9 @@ public class BookStoreServer {
                     System.out.println("Received from client: " + clientMessage);
 
                     String[] parts = clientMessage.split(",");
-                    String action = parts[0].trim();
+                    String features = parts[0].trim();
 
-                    switch (action.toLowerCase()) {
+                    switch (features.toLowerCase()) {
                         case "login":
                             String username = parts[1].trim();
                             String password = parts[2].trim();
@@ -77,7 +77,7 @@ public class BookStoreServer {
                             userController.addUser(newUser);
                             writer.println("Registration successful.");
                             break;
-                        case "addbook":
+                        case "add_book":
                             if (parts.length == 6) {
                                 String title = parts[1].trim();
                                 String author = parts[2].trim();
@@ -93,12 +93,12 @@ public class BookStoreServer {
                             }
                             break;
 
-                        case "deletebook":
+                        case "delete_book":
                             int bookId = Integer.parseInt(parts[1]);
                             bookController.deleteBook(bookId);
                             writer.println("Book deleted successfully.");
                             break;
-                        case "getbookauthor":
+                        case "get_book_by_author":
                             String author = parts[1].trim();
                             List<Book> booksByAuthor = bookController.retrieveBooksByAuthor(author);
                             if (!booksByAuthor.isEmpty()) {
@@ -109,7 +109,7 @@ public class BookStoreServer {
                                 writer.println("No books found by Author: " + author);
                             }
                             break;
-                        case "getbookid":
+                        case "get_book_by_id":
                             int id = Integer.parseInt(parts[1].trim());
                             Book bookById = bookController.retrieveBook(id);
                             if (bookById != null) {
@@ -118,7 +118,7 @@ public class BookStoreServer {
                                 writer.println("No book found with ID: " + id);
                             }
                             break;
-                        case "getbooktitle":
+                        case "get_book_by_title":
                             String title = parts[1].trim();
                             List<Book> booksByTitle = bookController.retrieveBooksByTitle(title);
                             if (!booksByTitle.isEmpty()) {
@@ -130,7 +130,7 @@ public class BookStoreServer {
                             }
                             break;
 
-                        case "getbookgenre":
+                        case "get_book_by_genre":
                             String genre = parts[1].trim();
                             List<Book> booksByGenre = bookController.retrieveBooksByTitle(genre);
                             if (!booksByGenre.isEmpty()) {
@@ -141,7 +141,6 @@ public class BookStoreServer {
                                 writer.println("No books found by Genre: " + genre);
                             }
                             break;
-                        // Implement other actions as needed
                         default:
                             writer.println("Invalid option.");
                             break;
