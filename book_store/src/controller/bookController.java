@@ -10,22 +10,22 @@ public class bookController {
     private Connection connection;
 
     public bookController() {
-         String username = "root";
-        String password = "Salma@2001";
-        String dbName = "bookStore";
+        String username = "root";
+        String password = "";
+        String dbName="bookStore";
         String url= "jdbc:mysql://localhost/" + dbName + "?user=" + username + "&password=" + password + "&useUnicode=true&characterEncoding=UTF-8";
-      
+
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection(url, username, password);
+            this.connection = DriverManager.getConnection(url, username, password);
         } catch (Exception e) {
             System.out.println(e);
         }
     }
 
     public void addBook(Book book) {
-        String sql = "INSERT INTO books(title,auther,genre, price,quantity) VALUES(?,?,?,?)";
+        String sql = "INSERT INTO books(title,author,genre, price,quantity) VALUES(?,?,?,?,?)";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, book.getTitle());
@@ -42,7 +42,7 @@ public class bookController {
     }
 
     public void deleteBook(int id) {
-        String sql = "DELETE FROM books WHERE id=?";
+        String sql = "DELETE FROM books WHERE book_id=?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             statement.executeUpdate();
@@ -70,13 +70,13 @@ public class bookController {
     }
 
     public Book retrieveBook(int id) {
-        String sql = "SELECT * From books WHERE id=?";
+        String sql = "SELECT * From books WHERE book_id=?";
         Book book = null;
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                book = new Book(resultSet.getInt("id"), resultSet.getString("title"),
+                book = new Book(resultSet.getInt("book_id"), resultSet.getString("title"),
                         resultSet.getString("author"), resultSet.getString("genre"),
                         resultSet.getDouble("price"), resultSet.getInt("quantity"));
             }
@@ -87,61 +87,59 @@ public class bookController {
         }
         return book;
     }
-    public Book retrieveBookByTitle(Book book) {
-        String sql = "SELECT * From books WHERE title=?";
-        Book book2 = null;
+    public List<Book> retrieveBooksByTitle(String title) {
+        String sql = "SELECT * FROM books WHERE title=?";
+        List<Book> books = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, book.getTitle());
+            statement.setString(1, title);
             ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                book = new Book(resultSet.getInt("id"), resultSet.getString("title"),
+            while (resultSet.next()) {
+                Book book = new Book(resultSet.getInt("book_id"), resultSet.getString("title"),
                         resultSet.getString("author"), resultSet.getString("genre"),
                         resultSet.getDouble("price"), resultSet.getInt("quantity"));
+                books.add(book);
             }
-
-
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return book2;
+        return books;
     }
-    public Book retrieveBookByAuthour(Book book) {
-        String sql = "SELECT * From books WHERE author=?";
-        Book book3 = null;
+
+    public List<Book> retrieveBooksByAuthor(String author) {
+        String sql = "SELECT * FROM books WHERE author=?";
+        List<Book> books = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, book.getAuthor());
+            statement.setString(1, author);
             ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                book = new Book(resultSet.getInt("id"), resultSet.getString("title"),
+            while (resultSet.next()) {
+                Book book = new Book(resultSet.getInt("book_id"), resultSet.getString("title"),
                         resultSet.getString("author"), resultSet.getString("genre"),
                         resultSet.getDouble("price"), resultSet.getInt("quantity"));
+                books.add(book);
             }
-
-
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return book3;
+        return books;
     }
-    public Book retrieveBookByGenre(Book book) {
-        String sql = "SELECT * From books WHERE genre=?";
-        Book book4 = null;
+
+    public List<Book> retrieveBooksByGenre(String genre) {
+        String sql = "SELECT * FROM books WHERE genre=?";
+        List<Book> books = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, book.getAuthor());
+            statement.setString(1, genre);
             ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                book = new Book(resultSet.getInt("id"), resultSet.getString("title"),
+            while (resultSet.next()) {
+                Book book = new Book(resultSet.getInt("book_id"), resultSet.getString("title"),
                         resultSet.getString("author"), resultSet.getString("genre"),
                         resultSet.getDouble("price"), resultSet.getInt("quantity"));
+                books.add(book);
             }
-
-
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return book4;
+        return books;
     }
-
     public List<Book> retrieveBooks(int id) {
         String sql = "SELECT * From books ";
         Book book = null;
@@ -150,7 +148,7 @@ public class bookController {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                book = new Book(resultSet.getInt("id"), resultSet.getString("title"),
+                book = new Book(resultSet.getInt("book_id"), resultSet.getString("title"),
                         resultSet.getString("author"), resultSet.getString("genre"),
                         resultSet.getDouble("price"), resultSet.getInt("quantity"));
                 books.add(book);
@@ -160,6 +158,7 @@ public class bookController {
         } catch (SQLException e) {
             System.out.println(e);
         }
+
         return books;
     }
 }

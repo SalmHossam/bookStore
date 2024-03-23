@@ -18,7 +18,7 @@ public class userController {
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection(url, username, password);
+            this.connection = DriverManager.getConnection(url, username, password);
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -59,13 +59,13 @@ public class userController {
     }
 
     public boolean getUser(User user){
-        String sql="SELECT FROM users WHERE username=? AND password=?";
+        String sql="SELECT * FROM users WHERE username=? AND password=?";
         User user1=null;
         try(PreparedStatement statement=connection.prepareStatement(sql)){
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getPassword());
             ResultSet resultSet=statement.executeQuery();
-           return resultSet.next();
+            return resultSet.next();
         } catch (SQLException e) {
             System.out.println(e);
             return false;

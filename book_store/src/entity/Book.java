@@ -1,6 +1,7 @@
 package entity;
 
 public class Book {
+    private int id;
     private String title;
     private String author;
     private String genre;
@@ -13,6 +14,7 @@ public class Book {
         this.genre = genre;
         this.price = price;
         this.quantity = quantity;
+        this.id=id;
     }
 
     public int getQuantity() {
@@ -52,5 +54,15 @@ public class Book {
 
     public void setAuthor(String author) {
         this.author = author;
+    }
+    public String toString() {
+        return "Book{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", author='" + author + '\'' +
+                ", genre='" + genre + '\'' +
+                ", price=" + price +
+                ", quantity=" + quantity +
+                '}';
     }
 }

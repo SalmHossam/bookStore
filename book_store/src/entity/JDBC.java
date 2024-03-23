@@ -8,13 +8,16 @@ import static java.lang.Class.forName;
 
 public class JDBC {
     public static void main(String[] args){
-        String url="jdbc:mysql://localhost::3306/bookStore";
         String username="root";
-        String password="Salma@2001";
+        String password="";
+        String dbName="bookStore";
+        String url= "jdbc:mysql://localhost/" + dbName + "?user=" + username + "&password=" + password + "&useUnicode=true&characterEncoding=UTF-8";
+
 
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection connection = DriverManager.getConnection(url,username,password);
+            System.out.println(connection);
         }
         catch (Exception e) {
             System.out.println(e);

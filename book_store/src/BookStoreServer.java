@@ -132,7 +132,7 @@ public class BookStoreServer {
 
                         case "get_book_by_genre":
                             String genre = parts[1].trim();
-                            List<Book> booksByGenre = bookController.retrieveBooksByTitle(genre);
+                            List<Book> booksByGenre = bookController.retrieveBooksByGenre(genre);
                             if (!booksByGenre.isEmpty()) {
                                 for (Book book : booksByGenre) {
                                     writer.println(book); // Send each retrieved book back to the client
