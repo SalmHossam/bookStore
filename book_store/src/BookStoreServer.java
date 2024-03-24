@@ -12,6 +12,7 @@ public class BookStoreServer {
     private static final int PORT = 1235;
     private static bookController bookController;
     private static userController userController;
+    private static int clientCounter = 1;
 
     public static void main(String[] args) {
         try {
@@ -23,9 +24,11 @@ public class BookStoreServer {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("New client connected: " + clientSocket);
+                System.out.println("New client connected  " + clientCounter+":"+clientSocket);
 
                 new Thread(new ClientHandler(clientSocket)).start();
+                clientCounter++;
+
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -36,9 +39,14 @@ public class BookStoreServer {
         private Socket clientSocket;
         private BufferedReader reader;
         private PrintWriter writer;
+        private bookController bookController;
+        private userController userController;
 
         public ClientHandler(Socket clientSocket) {
             this.clientSocket = clientSocket;
+            this.bookController = new bookController();
+            this.userController = new userController();
+
             try {
                 reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 writer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()), true);
@@ -73,7 +81,8 @@ public class BookStoreServer {
                             String name = parts[1].trim();
                             username = parts[2].trim();
                             password = parts[3].trim();
-                            User newUser = new User(name, username, password);
+                            String user_type=parts[4].trim();
+                            User newUser = new User(name, username, password,user_type);
                             userController.addUser(newUser);
                             writer.println("Registration successful.");
                             break;

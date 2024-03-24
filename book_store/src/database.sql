@@ -1,8 +1,9 @@
 CREATE TABLE users (
                        user_id INT AUTO_INCREMENT PRIMARY KEY,
-                       name VARCHAR(255) NOT NULL CHECK (CHAR_LENGTH(name) >= 2), -- Minimum length constraint for name
-                       username VARCHAR(255) UNIQUE NOT NULL CHECK (CHAR_LENGTH(username) >= 2 AND username NOT LIKE '% %'), -- Minimum length constraint and disallow whitespace
-                       password VARCHAR(255) NOT NULL CHECK (CHAR_LENGTH(password) >= 2 AND password NOT LIKE '% %') -- Minimum length constraint and disallow whitespace
+                       name VARCHAR(255) NOT NULL
+                       username VARCHAR(255) UNIQUE NOT NULL
+                       password VARCHAR(255) NOT NULL
+                       user_type ENUM('admin', 'user') DEFAULT 'user' -- Added user_type column
 );
 
 CREATE TABLE books (

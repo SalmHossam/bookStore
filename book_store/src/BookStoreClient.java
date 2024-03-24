@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.Socket;
 
 public class BookStoreClient {
-    private static final String SERVER_IP = "127.0.0.1"; // Replace with the server's IP address
+    private static final String SERVER_IP = "localhost"; // Replace with the server's IP address
     private static final int SERVER_PORT = 1235;
     private static boolean isAuthenticated=false;
 
@@ -41,7 +41,9 @@ public class BookStoreClient {
                         String newUsername = userInputReader.readLine();
                         System.out.print("Enter password: ");
                         String newPassword = userInputReader.readLine();
-                        writer.println("register," + name + "," + newUsername + "," + newPassword);
+                        System.out.print("Enter type: ");
+                        String user_type = userInputReader.readLine();
+                        writer.println("register," + name + "," + newUsername + "," + newPassword+","+user_type);
                         String registerResponse = reader.readLine();
                         System.out.println(registerResponse);
                         break;
