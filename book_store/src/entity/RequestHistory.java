@@ -5,7 +5,10 @@ public class RequestHistory {
     private int requestId;
     private String status;
 
-    public RequestHistory(int historyId, String pending) {
+    public RequestHistory(int historyId, int requestId, String status) {
+        this.historyId = historyId;
+        this.requestId = requestId;
+        this.status = status;
     }
 
     public int getHistoryId() {
@@ -29,12 +32,6 @@ public class RequestHistory {
     }
 
     public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public RequestHistory(int historyId, int requestId, String status) {
-        this.historyId = historyId;
-        this.requestId = requestId;
         this.status = status;
     }
 }

@@ -27,31 +27,85 @@ public class BorrowingRequestController {
     }
 
     public boolean acceptBorrowingRequest(int requestId) {
-        String sql = "UPDATE borrowing_requests SET status = 'accepted' WHERE request_id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, requestId);
-            statement.executeUpdate();
+        String sqlUpdateBorrowingRequest = "UPDATE borrowing_requests SET status = 'accepted' WHERE request_id = ?";
+        String sqlUpdateRequestHistory = "UPDATE request_history SET status = 'accepted' WHERE request_id = ?";
+
+        try (PreparedStatement statementUpdateBorrowingRequest = connection.prepareStatement(sqlUpdateBorrowingRequest);
+             PreparedStatement statementUpdateRequestHistory = connection.prepareStatement(sqlUpdateRequestHistory)) {
+
+            connection.setAutoCommit(false); // Start transaction
+
+            // Update borrowing_requests table
+            statementUpdateBorrowingRequest.setInt(1, requestId);
+            statementUpdateBorrowingRequest.executeUpdate();
+
+            // Update request_history table
+            statementUpdateRequestHistory.setInt(1, requestId);
+            statementUpdateRequestHistory.executeUpdate();
+
+            // Commit transaction
+            connection.commit();
+
             System.out.println("Borrowing request accepted successfully.");
         } catch (SQLException e) {
+            try {
+                connection.rollback(); // Rollback transaction if any error occurs
+            } catch (SQLException rollbackException) {
+                System.out.println("Error rolling back transaction: " + rollbackException.getMessage());
+            }
             System.out.println("Error accepting borrowing request: " + e.getMessage());
             return false;
+        } finally {
+            try {
+                connection.setAutoCommit(true); // Restore auto-commit mode
+            } catch (SQLException autoCommitException) {
+                System.out.println("Error setting auto-commit mode: " + autoCommitException.getMessage());
+            }
         }
 
         return true;
     }
 
     public boolean rejectBorrowingRequest(int requestId) {
-        String sql = "UPDATE borrowing_requests SET status = 'rejected' WHERE request_id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, requestId);
-            statement.executeUpdate();
-            System.out.println("Borrowing request rejected ");
+        String sqlUpdateBorrowingRequest = "UPDATE borrowing_requests SET status = 'rejected' WHERE request_id = ?";
+        String sqlUpdateRequestHistory = "UPDATE request_history SET status = 'rejected' WHERE request_id = ?";
+
+        try (PreparedStatement statementUpdateBorrowingRequest = connection.prepareStatement(sqlUpdateBorrowingRequest);
+             PreparedStatement statementUpdateRequestHistory = connection.prepareStatement(sqlUpdateRequestHistory)) {
+
+            connection.setAutoCommit(false); // Start transaction
+
+            // Update borrowing_requests table
+            statementUpdateBorrowingRequest.setInt(1, requestId);
+            statementUpdateBorrowingRequest.executeUpdate();
+
+            // Update request_history table
+            statementUpdateRequestHistory.setInt(1, requestId);
+            statementUpdateRequestHistory.executeUpdate();
+
+            // Commit transaction
+            connection.commit();
+
+            System.out.println("Borrowing request rejected successfully.");
         } catch (SQLException e) {
+            try {
+                connection.rollback(); // Rollback transaction if any error occurs
+            } catch (SQLException rollbackException) {
+                System.out.println("Error rolling back transaction: " + rollbackException.getMessage());
+            }
             System.out.println("Error rejecting borrowing request: " + e.getMessage());
             return false;
+        } finally {
+            try {
+                connection.setAutoCommit(true); // Restore auto-commit mode
+            } catch (SQLException autoCommitException) {
+                System.out.println("Error setting auto-commit mode: " + autoCommitException.getMessage());
+            }
         }
-        return true ;
+
+        return true;
     }
+
 
     public boolean createBorrowingRequest(String borrowerUsername, String lenderUsername, String bookTitle) {
         try {
@@ -59,13 +113,31 @@ public class BorrowingRequestController {
             int lenderId = getUserIdByUsername(lenderUsername);
             int bookId = getBookIdByTitle(bookTitle);
 
+            // Check if the book exists
+            if (bookId == -1) {
+                System.out.println("Book with title '" + bookTitle + "' does not exist.");
+                return false;
+            }
+
             String sql = "INSERT INTO borrowing_requests (borrower_id, lender_id, book_id, status) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 statement.setInt(1, borrowerId);
                 statement.setInt(2, lenderId);
                 statement.setInt(3, bookId);
                 statement.setString(4, "pending");
                 statement.executeUpdate();
+
+                // Get the auto-generated request_id
+                ResultSet generatedKeys = statement.getGeneratedKeys();
+                int requestId = -1;
+                if (generatedKeys.next()) {
+                    requestId = generatedKeys.getInt(1);
+                }
+
+                // Save the request history
+                RequestHistory requestHistory = new RequestHistory(0, requestId, "pending");
+                requestHistoryController.save(requestHistory);
+
                 System.out.println("Borrowing request created successfully.");
             }
         } catch (SQLException e) {
@@ -74,6 +146,8 @@ public class BorrowingRequestController {
         }
         return true;
     }
+
+
 
     private int getUserIdByUsername(String username) throws SQLException {
         String sql = "SELECT user_id FROM users WHERE username=?";

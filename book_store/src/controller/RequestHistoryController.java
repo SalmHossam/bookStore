@@ -19,8 +19,10 @@ public class RequestHistoryController {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             this.connection = DriverManager.getConnection(url, username, password);
-        } catch (Exception e) {
-            e.printStackTrace(); // Properly handle exceptions
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace(); // Handle class not found exception
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle SQL exception
         }
     }
 
@@ -47,7 +49,7 @@ public class RequestHistoryController {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Handle SQL exception
         }
         return requestHistoryList;
     }
@@ -55,12 +57,18 @@ public class RequestHistoryController {
 
     // Method to save request history
     public void save(RequestHistory requestHistory) {
+        if (requestHistory == null) {
+            System.out.println("RequestHistory object is null. Cannot save.");
+            return;
+        }
+
         String sql = "INSERT INTO request_history (request_id, status) VALUES (?, ?)";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, requestHistory.getRequestId());
             statement.setString(2, requestHistory.getStatus());
             statement.executeUpdate();
+            System.out.println("Request history saved successfully.");
         } catch (SQLException ex) {
             ex.printStackTrace(); // Properly handle SQL exceptions
         }

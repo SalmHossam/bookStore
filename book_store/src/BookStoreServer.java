@@ -183,7 +183,7 @@ public class BookStoreServer {
                             if (request) {
                                 writer.println("Borrowing request submitted successfully.");
                                 // Update request history after submitting the borrowing request
-                                RequestHistory requestHistory = new RequestHistory(0, "pending"); // Assuming you create a RequestHistory object here
+                                RequestHistory requestHistory = new RequestHistory(0 ,0,"pending"); // Assuming you create a RequestHistory object here
                                 requestHistoryController.save(requestHistory);
                             } else {
                                 writer.println("Error, Borrowing request didn't submit successfully.");

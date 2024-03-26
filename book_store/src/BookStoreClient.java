@@ -28,7 +28,7 @@ public class BookStoreClient {
                 switch (action.trim().toLowerCase()) {
                     case "1":
                         System.out.print("Enter username: ");
-                        username = userInputReader.readLine(); // Update the username variable
+                        username = userInputReader.readLine(); 
                         System.out.print("Enter password: ");
                         String password = userInputReader.readLine();
                         writer.println("login," + username + "," + password);
