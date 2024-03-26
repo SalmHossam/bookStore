@@ -12,8 +12,8 @@ public class bookController {
     public bookController() {
         String username = "root";
         String password = "";
-        String dbName="bookStore";
-        String url= "jdbc:mysql://localhost/" + dbName + "?user=" + username + "&password=" + password + "&useUnicode=true&characterEncoding=UTF-8";
+        String dbName = "bookStore";
+        String url = "jdbc:mysql://localhost/" + dbName + "?user=" + username + "&password=" + password + "&useUnicode=true&characterEncoding=UTF-8";
 
 
         try {
@@ -87,6 +87,25 @@ public class bookController {
         }
         return book;
     }
+    public Book retrieveBookTitle(String bookTitlee) {
+        String sql = "SELECT * From books WHERE title=?";
+        Book book = null;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, bookTitlee);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                book = new Book(resultSet.getInt("book_id"), resultSet.getString("title"),
+                        resultSet.getString("author"), resultSet.getString("genre"),
+                        resultSet.getDouble("price"), resultSet.getInt("quantity"));
+            }
+
+
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return book;
+    }
+
     public List<Book> retrieveBooksByTitle(String title) {
         String sql = "SELECT * FROM books WHERE title=?";
         List<Book> books = new ArrayList<>();
@@ -140,10 +159,11 @@ public class bookController {
         }
         return books;
     }
+
     public List<Book> retrieveBooks(int id) {
         String sql = "SELECT * From books ";
         Book book = null;
-        List<Book>books=new ArrayList<>();
+        List<Book> books = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
@@ -161,4 +181,5 @@ public class bookController {
 
         return books;
     }
+
 }

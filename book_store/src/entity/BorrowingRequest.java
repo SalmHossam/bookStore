@@ -6,13 +6,18 @@ public class BorrowingRequest {
     private int lenderId;
     private int bookId;
     private String status;
-
-    public BorrowingRequest(int requestId, int borrowerId, int lenderId, int bookId, String status) {
+    private User borrower;
+    private User lender;
+    private Book bookTitle;
+    public BorrowingRequest(int requestId, String status, User borrower, User lender,Book bookTitle) {
         this.requestId = requestId;
         this.borrowerId = borrowerId;
         this.lenderId = lenderId;
         this.bookId = bookId;
         this.status = status;
+        this.borrower = borrower;
+        this.lender = lender;
+        this.bookTitle=bookTitle;
     }
 
     public int getRequestId() {
@@ -55,4 +60,27 @@ public class BorrowingRequest {
         this.status = status;
     }
 
+    public User getBorrower() {
+        return borrower;
+    }
+
+    public void setBorrower(User borrower) {
+        this.borrower = borrower;
+    }
+
+    public User getLender() {
+        return lender;
+    }
+
+    public void setLender(User lender) {
+        this.lender = lender;
+    }
+
+    public Book getBookTitle() {
+        return bookTitle;
+    }
+
+    public void setBookTitle(Book bookTitle) {
+        this.bookTitle = bookTitle;
+    }
 }

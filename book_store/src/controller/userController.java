@@ -60,7 +60,6 @@ public class userController {
             System.out.println(e);
         }
     }
-
     public boolean getUser(User user) {
         String sql = "SELECT * FROM users WHERE username=? AND password=?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -73,4 +72,6 @@ public class userController {
             return false;
         }
     }
+
+
 }

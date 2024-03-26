@@ -5,6 +5,9 @@ public class RequestHistory {
     private int requestId;
     private String status;
 
+    public RequestHistory(int historyId, String pending) {
+    }
+
     public int getHistoryId() {
         return historyId;
     }

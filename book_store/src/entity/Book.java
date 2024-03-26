@@ -17,6 +17,10 @@ public class Book {
         this.id=id;
     }
 
+    public Book(String title) {
+        this.title = title;
+    }
+
     public int getQuantity() {
         return quantity;
     }

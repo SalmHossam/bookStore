@@ -1,11 +1,16 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Vector;
 
+import controller.BorrowingRequestController;
+import controller.RequestHistoryController;
 import controller.bookController;
 import controller.userController;
 import entity.Book;
+import entity.RequestHistory;
 import entity.User;
 
 public class BookStoreServer {
@@ -13,6 +18,7 @@ public class BookStoreServer {
     private static bookController bookController;
     private static userController userController;
     private static int clientCounter = 1;
+    private static Vector<ClientHandler> clients = new Vector<>();
 
     public static void main(String[] args) {
         try {
@@ -26,7 +32,9 @@ public class BookStoreServer {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected  " + clientCounter+":"+clientSocket);
 
-                new Thread(new ClientHandler(clientSocket)).start();
+                ClientHandler clientHandler = new ClientHandler(clientSocket, clients);
+                clients.add(clientHandler);
+                new Thread(clientHandler).start();
                 clientCounter++;
 
             }
@@ -41,11 +49,17 @@ public class BookStoreServer {
         private PrintWriter writer;
         private bookController bookController;
         private userController userController;
+        private BorrowingRequestController borrowingRequestController;
+        private String username;
+        private RequestHistoryController requestHistoryController;
+        private boolean isAdmin=false;
 
-        public ClientHandler(Socket clientSocket) {
+        public ClientHandler(Socket clientSocket, Vector<ClientHandler> clients) {
             this.clientSocket = clientSocket;
             this.bookController = new bookController();
             this.userController = new userController();
+            this.borrowingRequestController = new BorrowingRequestController();
+            this.requestHistoryController = new RequestHistoryController();
 
             try {
                 reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -83,8 +97,19 @@ public class BookStoreServer {
                             password = parts[3].trim();
                             String user_type=parts[4].trim();
                             User newUser = new User(name, username, password,user_type);
-                            userController.addUser(newUser);
-                            writer.println("Registration successful.");
+                            if(user_type.equals("admin")){
+                                isAdmin=true;
+                            }
+
+                            boolean isRegistered = userController.getUser(newUser);
+
+                            if (isRegistered){
+                                writer.println("Cannot Register , User already exist");
+                            }
+                            else{
+                                userController.addUser(newUser);
+                                writer.println("Registration successful.");
+                            }
                             break;
                         case "add_book":
                             if (parts.length == 6) {
@@ -132,7 +157,7 @@ public class BookStoreServer {
                             List<Book> booksByTitle = bookController.retrieveBooksByTitle(title);
                             if (!booksByTitle.isEmpty()) {
                                 for (Book book : booksByTitle) {
-                                    writer.println(book); // Send each retrieved book back to the client
+                                    writer.println(book);
                                 }
                             } else {
                                 writer.println("No books found by Title: " + title);
@@ -144,20 +169,69 @@ public class BookStoreServer {
                             List<Book> booksByGenre = bookController.retrieveBooksByGenre(genre);
                             if (!booksByGenre.isEmpty()) {
                                 for (Book book : booksByGenre) {
-                                    writer.println(book); // Send each retrieved book back to the client
+                                    writer.println(book);
                                 }
                             } else {
                                 writer.println("No books found by Genre: " + genre);
                             }
                             break;
+                        case "submit_borrowing_request":
+                            String borrowerUsername = parts[1].trim();
+                            String lenderUsername = parts[2].trim();
+                            String bookTitle = parts[3].trim();
+                            boolean request = borrowingRequestController.createBorrowingRequest(borrowerUsername, lenderUsername, bookTitle);
+                            if (request) {
+                                writer.println("Borrowing request submitted successfully.");
+                                // Update request history after submitting the borrowing request
+                                RequestHistory requestHistory = new RequestHistory(0, "pending"); // Assuming you create a RequestHistory object here
+                                requestHistoryController.save(requestHistory);
+                            } else {
+                                writer.println("Error, Borrowing request didn't submit successfully.");
+                            }
+                            break;
+                        case "accept_request":
+                            int requestIdToAccept = Integer.parseInt(parts[1].trim());
+                            boolean isAccepted = borrowingRequestController.acceptBorrowingRequest(requestIdToAccept);
+                            if (isAccepted) {
+                                writer.println("Request accepted successfully.");
+                                initiateChat();
+                            } else {
+                                writer.println("Failed to accept the request.");
+                            }
+                            break;
+
+                        case "reject_request":
+                            int requestIdToReject = Integer.parseInt(parts[1].trim());
+                            boolean isRejected = borrowingRequestController.rejectBorrowingRequest(requestIdToReject);
+                            if (isRejected) {
+                                writer.println("Request rejected successfully.");
+                            } else {
+                                writer.println("Failed to reject the request.");
+                            }
+                            break;
+                        case "initiate_chat":
+                            this.username = parts[1].trim();
+                            initiateChat();
+                            break;
+                        case "view_request_history":
+                            username = parts.length > 1 ? parts[1].trim() : ""; // Check if username parameter exists
+                            if (!username.isEmpty()) {
+                                String requestHistory = borrowingRequestController.getRequestHistory(username); // Get request history for the user
+                                writer.println(requestHistory); // Send request history to client
+                            } else {
+                                writer.println("Invalid username."); // Send error message to client
+                            }
+                            break;
+
                         default:
                             writer.println("Invalid option.");
                             break;
+
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
+            }  finally {
                 try {
                     if (reader != null) {
                         reader.close();
@@ -172,6 +246,35 @@ public class BookStoreServer {
                     e.printStackTrace();
                 }
             }
+
+        }
+        private void initiateChat() {
+            try {
+                String message;
+                while ((message = reader.readLine()) != null) {
+                    // Broadcast the message to other clients
+                    broadcastMessage(username + ": " + message);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                // Remove the client from the list when the chat ends
+                synchronized (clients) {
+                    clients.remove(this);
+                }
+            }
+        }
+
+        private void broadcastMessage(String message) {
+            for (ClientHandler client : clients) {
+                if (client != this) {
+                    client.sendMessage(message);
+                }
+            }
+        }
+
+        private void sendMessage(String message) {
+            writer.println(message);
         }
     }
 }
