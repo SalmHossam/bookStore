@@ -87,6 +87,7 @@ public class bookController {
         }
         return book;
     }
+
     public Book retrieveBookTitle(String bookTitlee) {
         String sql = "SELECT * From books WHERE title=?";
         Book book = null;
@@ -182,4 +183,20 @@ public class bookController {
         return books;
     }
 
+    public int getAvailableBooksCount() {
+        int availableBooksCount = 0;
+        try {
+            String sql = "SELECT COUNT(*) AS count FROM books;";
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                 ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    availableBooksCount = resultSet.getInt("count");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return availableBooksCount;
+    }
 }

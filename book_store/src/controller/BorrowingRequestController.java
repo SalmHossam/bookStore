@@ -8,7 +8,7 @@ import java.util.List;
 
 public class BorrowingRequestController {
     private Connection connection;
-    private RequestHistoryController requestHistoryController; // Add this field
+    private RequestHistoryController requestHistoryController;
 
 
     public BorrowingRequestController() {
@@ -22,7 +22,7 @@ public class BorrowingRequestController {
             this.connection = DriverManager.getConnection(url, username, password);
             this.requestHistoryController = new RequestHistoryController();
         } catch (Exception e) {
-            e.printStackTrace(); // Properly handle exceptions
+            e.printStackTrace();
         }
     }
 
@@ -33,23 +33,20 @@ public class BorrowingRequestController {
         try (PreparedStatement statementUpdateBorrowingRequest = connection.prepareStatement(sqlUpdateBorrowingRequest);
              PreparedStatement statementUpdateRequestHistory = connection.prepareStatement(sqlUpdateRequestHistory)) {
 
-            connection.setAutoCommit(false); // Start transaction
+            connection.setAutoCommit(false);
 
-            // Update borrowing_requests table
             statementUpdateBorrowingRequest.setInt(1, requestId);
             statementUpdateBorrowingRequest.executeUpdate();
 
-            // Update request_history table
             statementUpdateRequestHistory.setInt(1, requestId);
             statementUpdateRequestHistory.executeUpdate();
 
-            // Commit transaction
             connection.commit();
 
             System.out.println("Borrowing request accepted successfully.");
         } catch (SQLException e) {
             try {
-                connection.rollback(); // Rollback transaction if any error occurs
+                connection.rollback();
             } catch (SQLException rollbackException) {
                 System.out.println("Error rolling back transaction: " + rollbackException.getMessage());
             }
@@ -57,7 +54,7 @@ public class BorrowingRequestController {
             return false;
         } finally {
             try {
-                connection.setAutoCommit(true); // Restore auto-commit mode
+                connection.setAutoCommit(true);
             } catch (SQLException autoCommitException) {
                 System.out.println("Error setting auto-commit mode: " + autoCommitException.getMessage());
             }
@@ -73,23 +70,20 @@ public class BorrowingRequestController {
         try (PreparedStatement statementUpdateBorrowingRequest = connection.prepareStatement(sqlUpdateBorrowingRequest);
              PreparedStatement statementUpdateRequestHistory = connection.prepareStatement(sqlUpdateRequestHistory)) {
 
-            connection.setAutoCommit(false); // Start transaction
+            connection.setAutoCommit(false);
 
-            // Update borrowing_requests table
             statementUpdateBorrowingRequest.setInt(1, requestId);
             statementUpdateBorrowingRequest.executeUpdate();
 
-            // Update request_history table
             statementUpdateRequestHistory.setInt(1, requestId);
             statementUpdateRequestHistory.executeUpdate();
 
-            // Commit transaction
             connection.commit();
 
             System.out.println("Borrowing request rejected successfully.");
         } catch (SQLException e) {
             try {
-                connection.rollback(); // Rollback transaction if any error occurs
+                connection.rollback();
             } catch (SQLException rollbackException) {
                 System.out.println("Error rolling back transaction: " + rollbackException.getMessage());
             }
@@ -97,7 +91,7 @@ public class BorrowingRequestController {
             return false;
         } finally {
             try {
-                connection.setAutoCommit(true); // Restore auto-commit mode
+                connection.setAutoCommit(true);
             } catch (SQLException autoCommitException) {
                 System.out.println("Error setting auto-commit mode: " + autoCommitException.getMessage());
             }
@@ -113,7 +107,6 @@ public class BorrowingRequestController {
             int lenderId = getUserIdByUsername(lenderUsername);
             int bookId = getBookIdByTitle(bookTitle);
 
-            // Check if the book exists
             if (bookId == -1) {
                 System.out.println("Book with title '" + bookTitle + "' does not exist.");
                 return false;
@@ -127,14 +120,12 @@ public class BorrowingRequestController {
                 statement.setString(4, "pending");
                 statement.executeUpdate();
 
-                // Get the auto-generated request_id
                 ResultSet generatedKeys = statement.getGeneratedKeys();
                 int requestId = -1;
                 if (generatedKeys.next()) {
                     requestId = generatedKeys.getInt(1);
                 }
 
-                // Save the request history
                 RequestHistory requestHistory = new RequestHistory(0, requestId, "pending");
                 requestHistoryController.save(requestHistory);
 
@@ -159,7 +150,7 @@ public class BorrowingRequestController {
                 }
             }
         }
-        return -1; // If user not found
+        return -1;
     }
 
     private int getBookIdByTitle(String title) throws SQLException {
@@ -172,7 +163,7 @@ public class BorrowingRequestController {
                 }
             }
         }
-        return -1; // If book not found
+        return -1;
     }
 
     public String getRequestHistory(String username) {
@@ -187,6 +178,118 @@ public class BorrowingRequestController {
         String history = historyBuilder.toString();
         return !history.isEmpty() ? history : "No request history found for user: " + username;
     }
+    public int getBorrowedBooksCount() {
+        int borrowedBooksCount = 0;
+        try {
+            String sql = "SELECT COUNT(*) AS count FROM borrowing_requests WHERE status = 'borrowed'";
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                 ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    borrowedBooksCount = resultSet.getInt("count");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return borrowedBooksCount;
+    }
+
+    public int getAcceptedRequestsCount() {
+        int acceptedRequestsCount = 0;
+        try {
+            String sql = "SELECT COUNT(*) AS count FROM borrowing_requests WHERE status = 'accepted'";
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                 ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    acceptedRequestsCount = resultSet.getInt("count");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return acceptedRequestsCount;
+    }
+
+    public int getRejectedRequestsCount() {
+        int rejectedRequestsCount = 0;
+        try {
+            String sql = "SELECT COUNT(*) AS count FROM borrowing_requests WHERE status = 'rejected'";
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                 ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    rejectedRequestsCount = resultSet.getInt("count");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rejectedRequestsCount;
+    }
+    public int getAdminRejectedRequestsCount() {
+        int adminRejectedRequestsCount = 0;
+        try {
+            String sql = "SELECT COUNT(*) AS count FROM borrowing_requests WHERE status = 'rejected' AND admin_rejected = 1";
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                 ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    adminRejectedRequestsCount = resultSet.getInt("count");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return adminRejectedRequestsCount;
+    }
+
+    public int getViewRequestHistoryCount() {
+        int viewRequestHistoryCount = 0;
+        try {
+            String sql = "SELECT COUNT(*) AS count FROM request_history";
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                 ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    viewRequestHistoryCount = resultSet.getInt("count");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return viewRequestHistoryCount;
+    }
+
+    public int getAdminViewRequestHistoryCount() {
+        int adminViewRequestHistoryCount = 0;
+        try {
+            String sql = "SELECT COUNT(*) AS count FROM request_history WHERE admin_viewed = 1";
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                 ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    adminViewRequestHistoryCount = resultSet.getInt("count");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return adminViewRequestHistoryCount;
+    }
+    public int getPendingRequestsCount() {
+        int pendingRequestsCount = 0;
+        try {
+            String sql = "SELECT COUNT(*) AS count FROM borrowing_requests WHERE status = 'pending'";
+            try (PreparedStatement statement = connection.prepareStatement(sql);
+                 ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    pendingRequestsCount = resultSet.getInt("count");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return pendingRequestsCount;
+    }
+
+
+
 
 }
 

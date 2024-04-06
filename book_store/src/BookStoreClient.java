@@ -15,7 +15,7 @@ public class BookStoreClient {
             PrintWriter writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
             BufferedReader userInputReader = new BufferedReader(new InputStreamReader(System.in));
 
-            System.out.println("Connected to server.");
+            System.out.println("Connected to BookStore Server.");
 
             while (!isAuthenticated) {
                 System.out.println("\nPlease choose Option:");
@@ -28,13 +28,16 @@ public class BookStoreClient {
                 switch (action.trim().toLowerCase()) {
                     case "1":
                         System.out.print("Enter username: ");
-                        username = userInputReader.readLine(); 
+                        username = userInputReader.readLine();
                         System.out.print("Enter password: ");
                         String password = userInputReader.readLine();
+
                         writer.println("login," + username + "," + password);
                         String loginResponse = reader.readLine();
                         System.out.println(loginResponse);
+
                         isAuthenticated = loginResponse.equals("Login successful.");
+                        isAdmin = username.equals("root");
                         break;
                     case "2":
                         System.out.print("Enter name: ");
@@ -45,11 +48,15 @@ public class BookStoreClient {
                         String newPassword = userInputReader.readLine();
                         System.out.print("Enter type: ");
                         String user_type = userInputReader.readLine();
+                        if(user_type.equals("admin")){
+                            isAdmin=true;
+                        }
                         writer.println("register," + name + "," + newUsername + "," + newPassword+","+user_type);
                         String registerResponse = reader.readLine();
+
                         System.out.println(registerResponse);
                         if (registerResponse.equals("Registration successful.")) {
-                            username = newUsername; // Update the username variable
+                            username = newUsername;
                             isAuthenticated = true;
                         }
                         break;
@@ -78,9 +85,13 @@ public class BookStoreClient {
                 System.out.println("9. Reject borrowing request");
                 if (isAdmin) {
                     System.out.println("10. BookStore Analytics");
+                    System.out.println("11. Request History");
+                    System.out.println("12.Exit");
                 }
-                System.out.println("10. Request History");
-                System.out.println("11.Exit");
+                else{
+                    System.out.println("10. Request History");
+                    System.out.println("11.Exit");
+                }
                 System.out.print("Enter action number: ");
                 String action = userInputReader.readLine();
 
@@ -131,7 +142,7 @@ public class BookStoreClient {
                         writer.println("submit_borrowing_request," + borrowerUsername+","+lenderUsername+","+book);
                         System.out.println(reader.readLine());
                         break;
-                    case "8": // Accept borrowing request and option to initiate chat
+                    case "8":
                         System.out.print("Enter request ID to accept: ");
                         String requestIdToAccept = userInputReader.readLine();
                         writer.println("accept_request," + requestIdToAccept);
@@ -164,16 +175,42 @@ public class BookStoreClient {
                         break;
 
                     case "10":
-                        writer.println("view_request_history," + username); // Send request to server
-                        String historyResponse = reader.readLine(); // Receive response from server
-                        System.out.println("Request History:");
-                        System.out.println(historyResponse); // Display request history to user
+                        if (isAdmin) {
+                            writer.println("library_statistics");
+                            String statisticsResponse = reader.readLine();
+                            System.out.println("Library Statistics:");
+                            System.out.println(statisticsResponse);
+
+                        } else {
+                            writer.println("view_request_history," + username);
+                            String historyResponse = reader.readLine();
+                            System.out.println("Request History:");
+                            System.out.println(historyResponse);
+                        }
                         break;
+
                     case "11":
-                        writer.println("exit");
-                        socket.close();
-                        System.out.println("Disconnected from server.");
-                        return;
+                        if(isAdmin){
+                            writer.println("view_request_history," + username);
+                            String historyResponse = reader.readLine();
+                            System.out.println("Request History:");
+                            System.out.println(historyResponse);
+                        }
+                        else{
+                            writer.println("exit");
+                            socket.close();
+                            System.out.println("Disconnected from server.");
+                            return;
+                        }
+                        break;
+                    case"12":
+                        if(isAdmin){
+                            writer.println("exit");
+                            socket.close();
+                            System.out.println("Disconnected from server.");
+                            return;
+                        }
+
                     default:
                         System.out.println("Invalid action. Please try again.");
                         break;
@@ -186,13 +223,12 @@ public class BookStoreClient {
     private static void initiateChat(BufferedReader reader, PrintWriter writer, BufferedReader userInputReader, String username) throws IOException {
         System.out.println("Chat initiated. You can start typing your messages.");
 
-        // Thread to continuously receive messages from the server and print them
         Thread receiveThread = new Thread(() -> {
             try {
                 String message;
                 while ((message = reader.readLine()) != null) {
                     if (message.equals("exit")) {
-                        break; // Exit the loop if the server signals the end of the chat
+                        break;
                     }
                     System.out.println(message);
                 }
@@ -200,33 +236,30 @@ public class BookStoreClient {
                 e.printStackTrace();
             }
         });
-        receiveThread.start(); // Start the receive thread
-
-        // Thread to continuously read user input and send messages to the server
+        receiveThread.start();
         Thread sendThread = new Thread(() -> {
             try {
                 String userInput;
                 while ((userInput = userInputReader.readLine()) != null) {
-                    writer.println(userInput); // Send message to the server
+                    writer.println(userInput);
                     if (userInput.equalsIgnoreCase("exit")) {
-                        break; // Exit the loop if the user types "exit"
+                        break;
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
-        sendThread.start(); // Start the send thread
+        sendThread.start();
 
         try {
-            sendThread.join(); // Wait for the send thread to finish
+            sendThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            // Notify the server that the chat is ending
             writer.println("exit");
             try {
-                receiveThread.join(); // Wait for the receive thread to finish
+                receiveThread.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

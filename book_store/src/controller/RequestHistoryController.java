@@ -20,13 +20,12 @@ public class RequestHistoryController {
             Class.forName("com.mysql.cj.jdbc.Driver");
             this.connection = DriverManager.getConnection(url, username, password);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace(); // Handle class not found exception
+            e.printStackTrace();
         } catch (SQLException e) {
-            e.printStackTrace(); // Handle SQL exception
+            e.printStackTrace();
         }
     }
 
-    // Method to get request history by username
     public List<RequestHistory> findByUsername(String username) {
         List<RequestHistory> requestHistoryList = new ArrayList<>();
 
@@ -49,13 +48,12 @@ public class RequestHistoryController {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace(); // Handle SQL exception
+            e.printStackTrace();
         }
         return requestHistoryList;
     }
 
 
-    // Method to save request history
     public void save(RequestHistory requestHistory) {
         if (requestHistory == null) {
             System.out.println("RequestHistory object is null. Cannot save.");
@@ -70,7 +68,7 @@ public class RequestHistoryController {
             statement.executeUpdate();
             System.out.println("Request history saved successfully.");
         } catch (SQLException ex) {
-            ex.printStackTrace(); // Properly handle SQL exceptions
+            ex.printStackTrace();
         }
     }
 }
