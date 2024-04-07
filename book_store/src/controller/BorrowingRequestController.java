@@ -181,7 +181,7 @@ public class BorrowingRequestController {
     public int getBorrowedBooksCount() {
         int borrowedBooksCount = 0;
         try {
-            String sql = "SELECT COUNT(*) AS count FROM borrowing_requests WHERE status = 'borrowed'";
+            String sql = "SELECT COUNT(*) AS count FROM borrowing_requests WHERE status = 'accepted'OR status='rejected'OR status='pending'";
             try (PreparedStatement statement = connection.prepareStatement(sql);
                  ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -225,53 +225,7 @@ public class BorrowingRequestController {
         }
         return rejectedRequestsCount;
     }
-    public int getAdminRejectedRequestsCount() {
-        int adminRejectedRequestsCount = 0;
-        try {
-            String sql = "SELECT COUNT(*) AS count FROM borrowing_requests WHERE status = 'rejected' AND admin_rejected = 1";
-            try (PreparedStatement statement = connection.prepareStatement(sql);
-                 ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    adminRejectedRequestsCount = resultSet.getInt("count");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return adminRejectedRequestsCount;
-    }
 
-    public int getViewRequestHistoryCount() {
-        int viewRequestHistoryCount = 0;
-        try {
-            String sql = "SELECT COUNT(*) AS count FROM request_history";
-            try (PreparedStatement statement = connection.prepareStatement(sql);
-                 ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    viewRequestHistoryCount = resultSet.getInt("count");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return viewRequestHistoryCount;
-    }
-
-    public int getAdminViewRequestHistoryCount() {
-        int adminViewRequestHistoryCount = 0;
-        try {
-            String sql = "SELECT COUNT(*) AS count FROM request_history WHERE admin_viewed = 1";
-            try (PreparedStatement statement = connection.prepareStatement(sql);
-                 ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    adminViewRequestHistoryCount = resultSet.getInt("count");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return adminViewRequestHistoryCount;
-    }
     public int getPendingRequestsCount() {
         int pendingRequestsCount = 0;
         try {

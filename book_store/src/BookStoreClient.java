@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class BookStoreClient {
     private static final String SERVER_IP = "localhost";
@@ -152,7 +153,6 @@ public class BookStoreClient {
                             String initiateChatChoice = userInputReader.readLine().toLowerCase();
                             if (initiateChatChoice.equals("yes")) {
                                 writer.println("initiate_chat," + username);
-                                initiateChat(reader, writer, userInputReader, username);
                             } else {
                                 System.out.println("Chat not initiated.");
                                 System.out.println("Successfully accepted request.");
@@ -175,24 +175,31 @@ public class BookStoreClient {
                         break;
 
                     case "10":
-                        if (isAdmin) {
+                        if (username.equals("root")) {
                             writer.println("library_statistics");
-                            String statisticsResponse = reader.readLine();
                             System.out.println("Library Statistics:");
-                            System.out.println(statisticsResponse);
-
+                            String line;
+                            while ((line = reader.readLine()) != null && !line.equals("EndOfStatistics")) {
+                                System.out.println(line);
+                            }
                         } else {
                             writer.println("view_request_history," + username);
                             String historyResponse = reader.readLine();
                             System.out.println("Request History:");
                             System.out.println(historyResponse);
+
+                            String line;
+                            while ((line = reader.readLine()) != null && !line.equals("EndOfHistory")) {
+                                System.out.println(line);
+                            }
                         }
                         break;
+
 
                     case "11":
                         if(isAdmin){
                             writer.println("view_request_history," + username);
-                            String historyResponse = reader.readLine();
+                            String historyResponse = userInputReader.readLine();
                             System.out.println("Request History:");
                             System.out.println(historyResponse);
                         }
@@ -220,50 +227,5 @@ public class BookStoreClient {
             e.printStackTrace();
         }
     }
-    private static void initiateChat(BufferedReader reader, PrintWriter writer, BufferedReader userInputReader, String username) throws IOException {
-        System.out.println("Chat initiated. You can start typing your messages.");
 
-        Thread receiveThread = new Thread(() -> {
-            try {
-                String message;
-                while ((message = reader.readLine()) != null) {
-                    if (message.equals("exit")) {
-                        break;
-                    }
-                    System.out.println(message);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        receiveThread.start();
-        Thread sendThread = new Thread(() -> {
-            try {
-                String userInput;
-                while ((userInput = userInputReader.readLine()) != null) {
-                    writer.println(userInput);
-                    if (userInput.equalsIgnoreCase("exit")) {
-                        break;
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        sendThread.start();
-
-        try {
-            sendThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            writer.println("exit");
-            try {
-                receiveThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
-
-}

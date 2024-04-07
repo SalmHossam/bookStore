@@ -161,12 +161,11 @@ public class bookController {
         return books;
     }
 
-    public List<Book> retrieveBooks(int id) {
+    public List<Book> retrieveBooks() {
         String sql = "SELECT * From books ";
         Book book = null;
         List<Book> books = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 book = new Book(resultSet.getInt("book_id"), resultSet.getString("title"),

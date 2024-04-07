@@ -20,7 +20,6 @@ public class BookStoreServer {
     private static Vector<ClientHandler> clients = new Vector<>();
     private static int rejectedRequestsCount = 0;
     private static int viewRequestHistoryCount = 0;
-    private static int adminRejectedRequestsCount = 0;
     private static int adminViewRequestHistoryCount = 0;
 
     public static void main(String[] args) {
@@ -111,10 +110,13 @@ public class BookStoreServer {
 
                             if (isRegistered){
                                 writer.println("Cannot Register , User already exist");
-                            }
-                            else{
+                            } else if (user_type.equals("admin") || user_type.equals("user")) {
                                 userController.addUser(newUser);
                                 writer.println("Registration successful.");
+
+                            } else{
+                                writer.println("Registration unsuccessful.");
+
                             }
                             break;
                         case "add_book":
@@ -160,11 +162,10 @@ public class BookStoreServer {
                             break;
                         case "get_book_by_title":
                             String title = parts[1].trim();
-                            List<Book> booksByTitle = bookController.retrieveBooksByTitle(title);
-                            if (!booksByTitle.isEmpty()) {
-                                for (Book book : booksByTitle) {
-                                    writer.println(book);
-                                }
+                            Book bookByTitle = bookController.retrieveBookTitle(title);
+                            if (true) {
+                                    writer.println(bookByTitle);
+
                             } else {
                                 writer.println("No books found by Title: " + title);
                             }
@@ -218,6 +219,8 @@ public class BookStoreServer {
                                 String statistics = getLibraryStatistics();
                                 writer.println(statistics);
                                 System.out.println(getLibraryStatistics());
+                                writer.println("EndOfStatistics");
+
 
                             } else {
                                 writer.println("You do not have permission to view library statistics.");
@@ -233,10 +236,12 @@ public class BookStoreServer {
                             if (!username.isEmpty()) {
                                 String requestHistory = borrowingRequestController.getRequestHistory(username);
                                 writer.println(requestHistory);
+                                writer.println("EndOfHistory");
                             } else {
                                 writer.println("Invalid username.");
                             }
                             break;
+
 
                         default:
                             writer.println("Invalid option.");
@@ -267,20 +272,24 @@ public class BookStoreServer {
             int borrowedBooksCount = borrowingRequestController.getBorrowedBooksCount();
             int availableBooksCount = bookController.getAvailableBooksCount();
             int acceptedRequestsCount = borrowingRequestController.getAcceptedRequestsCount();
-            int rejectedCount = adminRejectedRequestsCount;
-            int viewHistoryCount = adminViewRequestHistoryCount;
+            int rejectedRequestsCount = borrowingRequestController.getRejectedRequestsCount();
+            int pendingRequestsCount = borrowingRequestController.getPendingRequestsCount();
+            List<Book>Books=bookController.retrieveBooks();
 
             StringBuilder statisticsMessage = new StringBuilder();
             statisticsMessage.append("Library Statistics:\n");
-            statisticsMessage.append(String.format("Borrowed Books: %d\n", borrowedBooksCount));
-            statisticsMessage.append(String.format("Available Books: %d\n", availableBooksCount));
+            statisticsMessage.append(String.format("Borrowing Transactions: %d\n", borrowedBooksCount));
+            statisticsMessage.append(String.format("Available Books count: %d\n", availableBooksCount));
+            statisticsMessage.append("Available Books:\n");
+            for (Book book : Books) {
+                statisticsMessage.append(String.format("  Title: %s, Author: %s, Genre: %s, Price: %.2f, Quantity: %d\n",
+                        book.getTitle(), book.getAuthor(), book.getGenre(), book.getPrice(), book.getQuantity()));
+            }
             statisticsMessage.append(String.format("Accepted Requests: %d\n", acceptedRequestsCount));
-            statisticsMessage.append(String.format("Rejected Requests: %d\n", rejectedCount));
-            statisticsMessage.append(String.format("View Request History Actions: %d\n", viewHistoryCount));
-
+            statisticsMessage.append(String.format("Rejected Requests: %d\n", rejectedRequestsCount));
+            statisticsMessage.append(String.format("pending Requests: %d\n", pendingRequestsCount));
             return statisticsMessage.toString();
         }
-
 
         private void initiateChat() {
             try {
